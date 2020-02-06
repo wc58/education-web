@@ -5,6 +5,13 @@ const path = '/edu_service/edu-teacher/'
 
 export default {
   // 条件分页查询
+  getTeacherList() {
+    return request({
+      url: `${path}`,
+      method: 'get',
+    })
+  },
+  // 条件分页查询
   getTeacherPageList(page, limit, searchobj) {
     return request({
       url: `${path}/moreConditionPageList/${page}/${limit}`,
