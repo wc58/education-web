@@ -4,7 +4,7 @@ import request from '@/utils/request'
 const path = '/edu_service/edu-teacher/'
 
 export default {
-  // 条件分页查询
+  // 查询全部
   getTeacherList() {
     return request({
       url: `${path}`,

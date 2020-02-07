@@ -24,6 +24,13 @@ export default {
       method:'post',
       data: searchobj
     })
+  },
+  //查询所有
+  getCourseList(){
+    return request({
+      url: `${path}`,
+      method: 'get',
+    })
   }
 
 }

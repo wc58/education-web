@@ -2,36 +2,38 @@
   <div class="app-container">
     <!--表单查询-->
     <el-form :inline="true" class="demo-form-inline">
-
       <el-form-item>
-        <el-input v-model="searchobj.name" placeholder="讲师名"/>
+        <el-select v-model="searchObj.teacherId" placeholder="讲师名">
+          <el-option
+            v-for="teacher in teachers"
+            :key="teacher.id"
+            :label="teacher.name"
+            :value="teacher.id"/>
+        </el-select>
       </el-form-item>
-
+      <el-form-item>
+        <el-input v-model="searchObj.courseName" placeholder="课堂名"/>
+      </el-form-item>
       <el-form-itme>
-        <el-select v-model="searchobj.level" placeholder="讲师头衔">
-          <el-option :value="1" label="高级讲师"/>
-          <el-option :value="2" label="首席讲师"/>
+        <el-select v-model="searchObj.subjectParentId"
+                   placeholder="一级分类"
+                   @change="getTwoLevelSubject">
+          <el-option
+            v-for="subject in oneLevelSubjectList"
+            :key="subject.id"
+            :label="subject.title"
+            :value="subject.id"/>
+        </el-select>
+        <el-select v-model="searchObj.subjectId" placeholder="二级分类">
+          <el-option
+            v-for="subject in twoLevelSubjectList"
+            :key="subject.id"
+            :label="subject.title"
+            :value="subject.id"/>
         </el-select>
       </el-form-itme>
-
       <el-form-item>
-        <el-date-picker
-          v-model="searchobj.begin"
-          type="datetime"
-          placeholder="开始时间"
-          value-format="yyyy-MM-dd HH:mm:ss"
-          default-time="00:00:00"
-        />
-      </el-form-item>
-
-      <el-form-item>
-        <el-date-picker
-          v-model="searchobj.end"
-          type="datetime"
-          placeholder="结束时间"
-          value-format="yyyy-MM-dd HH:mm:ss"
-          default-time="00:00:00"
-        />
+        <el-input v-model="searchObj.price" placeholder="价格"/>
       </el-form-item>
       <el-button type="primary" icon="el-icon-search" @click="getListTeacher(1)">查询</el-button>
       <el-button type="default" @click="resetData">清空</el-button>
@@ -57,7 +59,7 @@
         </template>
       </el-table-column>
 
-      <el-table-column prop="title" label="课程" width="180"/>
+      <el-table-column prop="title" label="课程"/>
 
       <el-table-column prop="teacherName" label="讲师"/>
 
@@ -67,7 +69,7 @@
 
       <el-table-column prop="price" label="价格" align="center"/>
 
-      <!--<el-table-column label="操作" align="center" width="200">
+      <el-table-column label="操作" align="center" width="200">
         <template slot-scope="scope">
           <router-link :to="'/teacher/edit/'+scope.row.id">
             <el-button type="primary" size="mini" icon="el-icon-edit">修改</el-button>
@@ -75,7 +77,7 @@
           <el-button type="danger" size="mini" icon="el-icon-delete" @click="removeDataById(scope.row.id)">删除
           </el-button>
         </template>
-      </el-table-column>-->
+      </el-table-column>
     </el-table>
 
 
@@ -93,6 +95,8 @@
 </template>
 <script>
   import course from '@/api/course'
+  import subject from '@/api/subject'
+  import teacher from '@/api/teacher'
 
   export default {
     data() {
@@ -102,20 +106,47 @@
         page: 1,
         limit: 8,
         total: null,
+        subjectParentId: '',
+        /*下拉框*/
+        teachers: [],
+        courses: [],
+        oneLevelSubjectList: [],
+        twoLevelSubjectList: [],
 
-        searchobj: {},
+        searchObj: {
+          teacherId: '',
+          courseName: '',
+          price: '',
+          subjectId: ''
+        },
         list: null
       }
     },
     created() {
       this.getListTeacher()
+      this.init()
     },
     methods: {
+      //初始化条件下拉框
+      init() {
+        //查询所有课程信息
+        course.getCourseList().then(response => {
+          this.courses = response.data.items
+        })
+        //查询所有讲师信息
+        teacher.getTeacherList().then(response => {
+          this.teachers = response.data.itmes
+        })
+        //查询所有分类信息
+        subject.getNestedTreeList().then(response => {
+          this.oneLevelSubjectList = response.data.items
+        })
+      },
       //分页查询
       getListTeacher(page = 1) {
         this.page = page
         this.listLoading = true
-        course.getCoursePageList(this.page, this.limit, this.searchobj)
+        course.getCoursePageList(this.page, this.limit, this.searchObj)
           .then(response => {
             this.list = response.data.items
             this.total = response.data.total
@@ -124,6 +155,21 @@
           .catch(response => {
 
           })
+      },
+      //根据一级分类变化查找二级分类
+      getTwoLevelSubject: function(oneLevelSubjectId) {
+        for (let i = 0; i < this.oneLevelSubjectList.length; i++) {
+          let oneLevel = this.oneLevelSubjectList[i]
+          if (oneLevel.id === oneLevelSubjectId) {
+            this.twoLevelSubjectList = oneLevel.children
+            this.searchObj.subjectId = ''
+          }
+        }
+      },
+      //清空查询信息
+      resetData() {
+        this.searchObj = {}
+        this.getListTeacher()
       },
       removeDataById: function(id) {
         this.$confirm('此操作将会永久删除，是否继续？', '提示', {
@@ -152,10 +198,7 @@
           }
         })
       },
-      resetData() {
-        this.searchobj = {}
-        this.getListTeacher()
-      }
+
     }
   }
 </script>
