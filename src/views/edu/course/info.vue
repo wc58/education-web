@@ -12,7 +12,7 @@
           <el-input v-model="courseInfo.title" placeholder=" 示例：机器学习项目课：从基础到搭建项目视频课程。专业名称注意大小写"/>
         </el-form-item>
         <el-form-item label="课程简介">
-          <el-input type="textarea" v-model="courseInfo.description" placeholder=" 示例：简介"/>
+          <tinymce :height="300" v-model="courseInfo.description"/>
         </el-form-item>
         <!-- 所属分类 TODO -->
         <el-form-item label="课程类别">
@@ -54,9 +54,18 @@
         <el-form-item label="总课时">
           <el-input-number :min="0" v-model="courseInfo.lessonNum" controls-position="right" placeholder="请填写课程的总课时数"/>
         </el-form-item>
-        <!-- 课程简介 TODO -->
 
-        <!-- 课程封面 TODO -->
+        <!-- 课程封面-->
+        <el-form-item label="课程封面">
+          <el-upload
+            :show-file-list="false"
+            :on-success="handleAvatarSuccess"
+            :before-upload="beforeAvatarUpload"
+            :action="'http://localhost:9001/edu_service/oss/uploadCover'"
+            class="avatar-uploader">
+            <img :src="courseInfo.cover">
+          </el-upload>
+        </el-form-item>
 
         <el-form-item label="课程价格">
           <el-input-number :min="0" v-model="courseInfo.price" controls-position="right" placeholder="免费课程请设置为0元"/>
@@ -73,10 +82,13 @@
   import course from '@/api/course'
   import teacher from '@/api/teacher'
   import subject from '@/api/subject'
+  import Tinymce from '@/components/Tinymce'
 
   export default {
+    components: { Tinymce },
     data() {
       return {
+        BASE_API: process.env.BABEL_ENV,
         saveBtnDisabled: false,
         teacherList: [],
         oneLevelSubjectList: [],
@@ -90,7 +102,7 @@
           subjectId: '',
           subjectParentId: '',
           teacherId: '',
-          cover: ''
+          cover: 'https://eduction.oss-cn-beijing.aliyuncs.com/avatar/2020/02/04/d6a6f95b-ae2c-411b-81a4-2b6eafc28dd6file.png'
         }
       }
     },
@@ -131,6 +143,7 @@
             this.teacherList = response.data.itmes
           })
       },
+      //根据一级分类变化查找二级分类
       getTwoLevelSubject: function(oneLevelSubjectId) {
         for (let i = 0; i < this.oneLevelSubjectList.length; i++) {
           let oneLevel = this.oneLevelSubjectList[i]
@@ -140,11 +153,12 @@
           }
         }
       },
+      //下一步
       next() {
         course.saveCourse(this.courseInfo)
           .then(response => {
             console.log(response)
-            if (response.code == 20000) {
+            if (response.code === 20000) {
               this.$message({
                 type: 'success',
                 message: '操作成功'
@@ -153,7 +167,24 @@
               this.$router.push({ path: `/course/chapter/${this.id}` })
             }
           })
+      },
+      //封面上传成功
+      handleAvatarSuccess(response){
+        this.courseInfo.cover = response.data.imageUrl
+      },
+      //封面上传前
+      beforeAvatarUpload(file){
+        const isLt2M = file.size / 1024 / 1024 < 2
+        if (!isLt2M) {
+          this.$message.error('上传头像图片大小不能超过 2MB!')
+        }
+        return isLt2M
       }
     }
   }
 </script>
+<style scoped>
+  .tinymce-container {
+    line-height: 29px;
+  }
+</style>

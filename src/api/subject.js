@@ -21,5 +21,6 @@ export default {
       method:'post',
       data: node
     })
-  }
+  },
+
 }

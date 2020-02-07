@@ -34,7 +34,7 @@
           :width="300"
           :height="300"
           :key="imageCropperKey"
-          :url="'/edu_service/oss/upload'"
+          :url="'/edu_service/oss/uploadAvatar'"
           field="file"
           @close="close"
           @crop-upload-success="cropSuccess"

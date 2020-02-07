@@ -16,6 +16,14 @@ export default {
       url: `${path}/${courseId}`,
       method: 'get',
     })
+  },
+  //分页条件查询
+  getCoursePageList(page, limit, searchobj){
+    return request({
+      url:`${path}/${page}/${limit}`,
+      method:'post',
+      data: searchobj
+    })
   }
 
 }
