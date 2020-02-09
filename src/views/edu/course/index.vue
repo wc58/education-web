@@ -15,7 +15,7 @@
         <el-input v-model="searchObj.courseName" placeholder="课堂名"/>
       </el-form-item>
       <el-form-itme>
-        <el-select v-model="searchObj.subjectParentId"
+        <!--<el-select v-model="searchObj.subjectParentId"
                    placeholder="一级分类"
                    @change="getTwoLevelSubject">
           <el-option
@@ -23,8 +23,8 @@
             :key="subject.id"
             :label="subject.title"
             :value="subject.id"/>
-        </el-select>
-        <el-select v-model="searchObj.subjectId" placeholder="二级分类">
+        </el-select>-->
+        <el-select v-model="searchObj.subjectId" placeholder="分类">
           <el-option
             v-for="subject in twoLevelSubjectList"
             :key="subject.id"
@@ -123,7 +123,7 @@
       }
     },
     created() {
-      this.getListTeacher()
+      this.getListCourse()
       this.init()
     },
     methods: {
@@ -140,10 +140,16 @@
         //查询所有分类信息
         subject.getNestedTreeList().then(response => {
           this.oneLevelSubjectList = response.data.items
+          let temp = []
+          for (let i = 0; i < this.oneLevelSubjectList.length; i++) {
+            temp = temp.concat(this.oneLevelSubjectList[i].children)
+
+          }
+          this.twoLevelSubjectList = temp
         })
       },
       //分页查询
-      getListTeacher(page = 1) {
+      getListCourse(page = 1) {
         this.page = page
         this.listLoading = true
         course.getCoursePageList(this.page, this.limit, this.searchObj)
@@ -169,7 +175,7 @@
       //清空查询信息
       resetData() {
         this.searchObj = {}
-        this.getListTeacher()
+        this.getListCourse()
       },
       removeDataById: function(id) {
         this.$confirm('此操作将会永久删除，是否继续？', '提示', {
@@ -177,9 +183,9 @@
           cancelButtonText: '取消',
           type: 'waring'
         }).then(() => {
-          return teacher.removeTeacherById(id)
+          return course.removeCourseById(id)
         }).then(() => {
-          this.getListTeacher()
+          this.getListCourse()
           this.$message({
             type: 'success',
             message: '删除成功'
@@ -197,7 +203,7 @@
             })
           }
         })
-      },
+      }
 
     }
   }
